@@ -17,7 +17,7 @@ The **Daily Mood Tracker** project includes a feature called the Reminder System
 - Notification Library: push.js, or browser Notification API
 
 ## Installation
-* Clone the repository: git clone https://github.com/your-username/daily-mood-tracker.git
+* Clone the repository: git clone https://github.com/akindada/SIT725-groupWRK.git 
 * Install dependencies
 
 ## Start the server 
