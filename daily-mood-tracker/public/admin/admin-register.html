@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Registration</title>
+
+  <!-- Materialize CSS CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/CSS/styles.css" />
+</head>
+<body class="grey lighten-4">
+
+  <div class="container">
+    <div class="row">
+      <div class="col s12 m8 offset-m2 l6 offset-l3">
+        <div class="card-panel white z-depth-3">
+          <h5 class="center-align">Admin Registration</h5>
+          <form id="adminForm">
+            <div class="input-field">
+              <input id="username" type="text" required />
+              <label for="username">Username</label>
+            </div>
+
+            <div class="input-field">
+              <input id="email" type="email" required />
+              <label for="email">Email</label>
+            </div>
+
+            <div class="input-field">
+              <input id="password" type="password" required />
+              <label for="password">Password</label>
+            </div>
+
+            <button class="btn waves-effect waves-light green full-width" type="submit">
+              Register Admin
+            </button>
+
+            <div id="message" class="center-align" style="margin-top: 20px;"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- Registration Script -->
+  <script>
+    const form = document.getElementById('adminForm');
+    const messageEl = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !email || !password) {
+        messageEl.style.color = 'red';
+        messageEl.textContent = 'All fields are required!';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          // Show success message
+          messageEl.style.color = 'green';
+          messageEl.textContent = 'Admin registered successfully! Redirecting...';
+
+          // Redirect to admin dashboard after 2 seconds
+          setTimeout(() => {
+            window.location.href = '/admin/dashboard';
+          }, 2000);
+        } else {
+          messageEl.style.color = 'red';
+          messageEl.textContent = data.msg || 'Registration failed.';
+        }
+      } catch (err) {
+        console.error(err);
+        messageEl.style.color = 'red';
+        messageEl.textContent = 'Server error';
+      }
+    });
+  </script>
+</body>
+</html>
