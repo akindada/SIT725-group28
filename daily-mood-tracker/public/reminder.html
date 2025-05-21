@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reminder Settings</title>
+
+  <!-- Materialize CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="grey lighten-4">
+
+  <div class="container">
+    <h4 class="center-align">Reminder Settings</h4>
+
+    <!-- Return to Dashboard Button -->
+    <div class="right-align" style="margin-bottom: 20px;">
+      <a href="/dashboard" class="btn blue waves-effect waves-light">
+        <i class="material-icons left"></i>Return to Dashboard
+      </a>
+    </div>
+
+    <!-- Send Test Notification -->
+    <div class="center-align" style="margin-top: 20px;">
+      <button id="testNotificationBtn" class="btn teal">Send Test Notification</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="row">
+      <div class="col s12">
+        <ul class="tabs">
+          <li class="tab col s6"><a class="active" href="#setReminder">Set Reminder</a></li>
+          <li class="tab col s6"><a href="#reminderHistory">Reminder History</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Set Reminder Tab -->
+    <div id="setReminder" class="col s12">
+      <div class="row">
+        <div class="col s12 m6 offset-m3">
+          <div class="card-panel white z-depth-3">
+            <form id="reminderForm">
+              <div class="input-field">
+                <input type="text" id="message" required />
+                <label for="message">Reminder Message</label>
+              </div>
+              <div class="input-field">
+                <input type="datetime-local" id="reminderDate" required />
+                <label for="reminderDate" class="active">Reminder Date and Time</label>
+              </div>
+              <button class="btn waves-effect waves-light" type="submit">Set Reminder</button>
+            </form>
+            <p id="reminderStatus" class="green-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reminder History Tab -->
+    <div id="reminderHistory" class="col s12">
+      <h5>Your Reminders</h5>
+      <ul id="reminderList" class="collection"></ul>
+    </div>
+  </div>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      M.Tabs.init(document.querySelectorAll('.tabs'));
+
+      const testNotificationBtn = document.getElementById('testNotificationBtn');
+      if (testNotificationBtn) {
+        testNotificationBtn.addEventListener('click', sendTestNotification);
+      }
+    });
+
+    const reminderForm = document.getElementById('reminderForm');
+    const messageInput = document.getElementById('message');
+    const reminderDateInput = document.getElementById('reminderDate');
+    const reminderList = document.getElementById('reminderList');
+    const reminderStatus = document.getElementById('reminderStatus');
+
+    async function fetchReminders() {
+      try {
+        const response = await fetch('/api/reminders');
+        const reminders = await response.json();
+        reminderList.innerHTML = '';
+        if (Array.isArray(reminders)) {
+          reminders.forEach(reminder => {
+            const displayDate = reminder.displayTime || reminder.reminderDate;
+            const li = document.createElement('li');
+            li.classList.add('collection-item');
+            li.innerHTML = ` 
+              <span>${reminder.message} at ${new Date(displayDate).toLocaleString()}</span>
+              <button class="btn-small red right" onclick="deleteReminder('${reminder._id}')">Delete</button>
+            `;
+            reminderList.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching reminders:', err);
+      }
+    }
+
+    reminderForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = messageInput.value.trim();
+      const userTime = new Date(reminderDateInput.value);
+      const notifyTime = new Date(userTime.getTime() - 5 * 60 * 1000);
+      reminderStatus.textContent = '';
+
+      try {
+        const response = await fetch('/api/reminders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message,
+            reminderDate: notifyTime.toISOString(),
+            displayTime: userTime.toISOString()
+          }),
+        });
+
+        if (response.ok) {
+          reminderStatus.textContent = 'Reminder set successfully!';
+          reminderForm.reset();
+          fetchReminders();
+        } else {
+          reminderStatus.textContent = 'Failed to set reminder.';
+        }
+      } catch (err) {
+        console.error('Error adding reminder:', err);
+        reminderStatus.textContent = 'Error occurred while setting reminder.';
+      }
+    });
+
+    async function deleteReminder(id) {
+      try {
+        const response = await fetch(`/api/reminders/${id}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          fetchReminders();
+        }
+      } catch (err) {
+        console.error('Error deleting reminder:', err);
+      }
+    }
+
+    async function sendTestNotification() {
+      console.log('Send Test Notification clicked');
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'TEST_NOTIFICATION',
+            title: 'Upcoming Event',
+            message: '5 Mins to log your mood.'
+          });
+        } else {
+          console.warn('No active service worker found.');
+        }
+      } catch (error) {
+        console.error('Failed to send test notification:', error);
+      }
+    }
+
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.register('/serviceWorker.js')
+        .then(swReg => {
+          console.log('Service Worker is registered', swReg);
+          askNotificationPermission();
+        })
+        .catch(error => {
+          console.error('Service Worker Error', error);
+        });
+    }
+
+    function askNotificationPermission() {
+  Notification.requestPermission().then(permission => {
+    if (permission === 'granted') {
+      console.log('Notification permission granted.');
+      subscribeUserToPush(); // Add this function to handle subscription
+    } else {
+      console.warn('Notification permission denied.');
+    }
+  });
+}
+
+// Subscribe the user to push notifications
+async function subscribeUserToPush() {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: 'BNRDx4zdNpm4K1Lo1tDyR84Ci_aDqgd_GjyU3qX_MPXpkrMxu3uYJm-p2U8sNE4LI2TwklstKkBWMqmcKi3roDo' // Replace with your VAPID key
+    });
+
+    console.log('User subscribed to push notifications:', subscription);
+
+    // Send subscription to backend
+    await fetch('/api/save-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(subscription),
+    });
+
+  } catch (error) {
+    console.error('Error subscribing user to push notifications:', error);
+  }
+}
+
+    fetchReminders();
+  </script>
+</body>
+</html>
