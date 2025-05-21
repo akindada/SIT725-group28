@@ -59,7 +59,7 @@ This section defines the layer technologies
 - dashboard.html – Mood Tracking Interface and Users select moods and submit via dashboard.js.
 - history.html – Mood History and displays timeline or chart of mood entries using GET API.
 - profile.html – User Profile and displays user data and logout functionality.
-- admin.html – Admin Dashboard, admin homepage which is accessible only to admins to view all user moods.
+- admin-dashbaord.html – Admin Dashboard, admin homepage which is accessible only to admins to view all user moods.
 
 ## Backend Architecture & Functionality
 
@@ -75,18 +75,6 @@ This section defines the layer technologies
 
 The app connects to MongoDB Atlas using credentials from the .env file. It uses two collections: 'users' and 'moods'. 'users' store registration and roles, while 'moods' store user mood entries with timestamps.
 
-## Unit Testing (Recommendation Section)
-
-* Recommended tests with Postman
-:
-- POST /api/auth/register – should create user and return token.
-- POST /api/auth/login – should authenticate and return token.
-- GET /api/moods/history – should return mood entries of user.
-- POST /api/moods – should save mood for token user.
-- GET /api/moods/admin – only accessible to admins.
-- RBAC Middleware – restrict access if not admin.
-- Authentication Middleware – reject invalid/missing tokens.
-
 ## API Endpoints
 * Auth APIs
 - POST /api/auth/register – Register a new user.
@@ -97,8 +85,86 @@ The app connects to MongoDB Atlas using credentials from the .env file. It uses 
 - GET /api/moods/history – Get user’s mood history.
 - GET /api/moods/admin – Admin access to all mood logs.
 
-## Security Considerations
+### Performing Unit Test and Manual Test on both admin and regular user functionalities
 
+## Steps taken to carry out Unit functionality test
+* Test was done using Mocha, Chai, and Chaihttp
+* Test folder was created in the root folder, and test file "admin.test.js" was created to perform unit test.
+* Test performed was successful and screenshots are saved in test/test output images/Admin test images
+
+### Admin API Postman Testing Instructions
+This document describes how to test the Admin API endpoints manually using Postman.
+
+## Steps
+1. Open Postman.
+## Environment Setup
+In Postman, Save token via the Authorization header to headers tab
+### 1. Test Create Admin
+Use POST (http://localhost:5000/admin/register)
+- Response status should be 201.
+- The response should contain the created admin user details. (Evidence is saved as POSTMAN admin-created image)
+### 2. Test Admin Login
+- Run the `Admin Login` request (http://localhost:5000/admin/login)
+- On success, the response status should be 200, (Evidence is saved as POSTMAN admin-login image)
+- The token will be automatically saved as an environment variable `token` for use in subsequent requests.
+### 3. Get All Admins
+- Run the `Get All Admins` request (http://localhost:5000/admin/dashboard)
+- This uses the token from login automatically via the Authorization header.
+- Response status should be 200, (Evidence is saved as POSTMAN Get-admin image)
+- The response body should be an array of admin users.
+### 4. Update Admin user
+- Run the `Put method` request (http://localhost:5000/admin/users/userID/edit)
+- This uses the token from login automatically via the Authorization header.
+- Response status should be 200, (Evidence is saved as POSTMAN Update-admin image)
+- The response body should be an array of admin users.
+### 5. Suspend User
+- Run the `Put method` request (http://localhost:5000/admin/users/userID/suspend)
+- This uses the token from login automatically via the Authorization header.
+- Response status should be 200, (Evidence is saved as POSTMAN Suspend-user image)
+- Repeat step to unsuspend user, (Evidence is saved as POSTMAN Unsuspend-user image)
+### 5. Delete User
+- Run the `Put method` request (http://localhost:5000/admin/users/userID)
+- This uses the token from login automatically via the Authorization header.
+- Response status should be 200, (Evidence is saved as POSTMAN Delete-user image)
+### 5. Get Analytics
+- Run the `Get method` request (http://localhost:5000/admin/analytics)
+- This uses the token from login automatically via the Authorization header.
+- Response status should be 200, (Evidence is saved as POSTMAN Admin-analytics image)
+
+### Admin Test Execution Results
+- All tests passed successfully.
+- Included detailed console logs showing token extraction and request headers.
+- Verified MongoDB connection stability throughout testing.
+
+### Regular User API Postman Testing Instructions
+In this part, we provide step-by-step guidance for testing the application API using Postman. The API supports user registration, login, and mood tracking functionality.
+
+## Register a New User
+Use POST (http://localhost:5000/api/users/register)
+- Response status should be 201.
+- The response should contain the created user token and role. (Evidence is saved as POSTMAN user-created image)
+
+## Login a User
+Use POST (http://localhost:5000/api/users/login)
+- Response status should be 201.
+- The response should contain the successful message. (Evidence is saved as POSTMAN user-login image)
+
+## Submit Moods
+Use POST (http://localhost:5000/api/moods)
+- Response status should be 201.
+- The response should contain the successful message. (Evidence is saved as POSTMAN submit-mood image)
+
+## Get Mood History
+Use GET (http://localhost:5000/api/moods)
+- Response status should be 200.
+- The response should contain the successful message. (Evidence is saved as POSTMAN get-mood image)
+
+## Update Mood Description
+Use PUT (http://localhost:5000/api/moods/moodID)
+- Response status should be 200.
+- The response should contain the successful message. (Evidence is saved as POSTMAN update-mood image)
+
+### Security Considerations
 - Passwords are hashed using bcrypt. 
 - JWT is used for secure token-based authentication. 
 - Admin role is protected using RBAC middleware. 
@@ -110,16 +176,20 @@ The app connects to MongoDB Atlas using credentials from the .env file. It uses 
 - Daily Reminders via scheduled jobs.
 - Export mood data to PDF/CSV.
 
-
-
-
  ## Installation
 * Clone the repository: git clone  https://github.com/akindada/SIT725-groupWRK.git
-* Install dependencies
+* Install dependencies ( nodejs, MongoDb, Dotenv, Cor, Express, Mocha, Chai and Supertest)
+
+### Build and Run App using Docker
+# Build Docker image
+docker build -t mood-reminder-app .
+# Run Docker container with environment file
+docker run -p 5000:5000 --env-file .env mood-reminder-app
 
 ## Start the server 
 * node server.js
-* Open in browser:Visit http://localhost:5000
+* Open in browser:Visit http://localhost:5000 for regular user
+* Open in browser:Visit http://localhost:5000/admin for admin user
 
 
 

@@ -4,47 +4,326 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard</title>
+  <!-- Materialize CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <!-- Your Custom CSS -->
+  <link rel="stylesheet" href="/CSS/styles.css">
+
+  <style>
+    /* Make dashboard full page and flex column */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body.grey {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    main#dashboard-main {
+      flex: 1 1 auto;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    header#top-bar {
+      background-color: #2196f3; /* Materialize blue */
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    header#top-bar h6, header#top-bar p {
+      margin: 0 15px 0 0;
+      white-space: nowrap;
+    }
+    #top-buttons > * {
+      margin-left: 10px;
+    }
+    /* Tabs content padding */
+    .tab-content {
+      padding: 20px 0;
+    }
+  </style>
 </head>
 <body class="grey lighten-4">
 
-  <div class="container">
+  <!-- TOP BAR with Welcome + Add User, Change Password, Logout -->
+  <header id="top-bar">
+    <div id="dashboard-data" class="valign-wrapper">
+      <!-- Welcome message will be dynamically inserted here -->
+    </div>
+    <div id="top-buttons">
+      <button id="addUserBtn" class="btn waves-effect waves-light green lighten-1">Add New User</button>
+      <button id="changePasswordBtn" class="btn waves-effect waves-light blue">Change Password</button>
+      <button id="logoutBtn" class="btn waves-effect waves-light grey darken-1">Logout</button>
+    </div>
+  </header>
+
+  <main id="dashboard-main" class="container">
+
+    <!-- TABS NAV -->
     <div class="row">
       <div class="col s12">
-        <div class="card-panel white z-depth-3">
-          <h5 class="center-align">Admin Dashboard</h5>
-          <div id="message" class="red-text center-align"></div>
-
-          <!-- Welcome Data -->
-          <div id="dashboard-data" class="center-align"></div>
-
-          <!-- User Table -->
-          <table class="highlight centered">
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="userTableBody"></tbody>
-          </table>
-
-          <!-- Buttons -->
-          <div class="center-align" style="margin-top: 20px;">
-            <button id="logoutBtn" class="btn waves-effect waves-light grey darken-1">Logout</button>
-          </div>
-        </div>
+        <ul class="tabs">
+          <li class="tab col s3"><a class="active" href="#filter-tab">Filter</a></li>
+          <li class="tab col s3"><a href="#analysis-tab">Analysis</a></li>
+        </ul>
       </div>
+
+      <!-- FILTER TAB -->
+      <div id="filter-tab" class="col s12 tab-content">
+        <h5>Filter Users by Email</h5>
+        <div class="input-field">
+          <input id="email-filter" type="email" class="validate" />
+          <label for="email-filter">Email</label>
+        </div>
+
+        <!-- User Table stays here -->
+        <table class="highlight centered">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ANALYSIS TAB -->
+      <div id="analysis-tab" class="col s12 tab-content">
+        <h5>Analysis</h5>
+        <p>Total number of created moods, deleted moods, new user registrations, active sessions, etc.</p>
+        <canvas id="analyticsChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Change Password Modal -->
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <h5>Change Password</h5>
+      <form id="changePasswordForm">
+        <div class="input-field">
+          <input id="currentPassword" type="password" required />
+          <label for="currentPassword">Current Password</label>
+        </div>
+        <div class="input-field">
+          <input id="newPassword" type="password" required />
+          <label for="newPassword">New Password</label>
+        </div>
+        <div class="input-field">
+          <input id="confirmPassword" type="password" required />
+          <label for="confirmPassword">Confirm New Password</label>
+        </div>
+        <div id="passwordMessage" class="red-text"></div>
+        <div class="modal-footer" style="padding-top: 0;">
+          <button type="submit" class="btn green">Submit</button>
+          <button type="button" class="modal-close btn grey" style="margin-left: 10px;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add New User Modal -->
+  <div id="addUserModal" class="modal">
+    <div class="modal-content">
+      <h5>Add New User</h5>
+      <form id="addUserForm">
+        <div class="input-field">
+          <input id="newUsername" type="text" required />
+          <label for="newUsername">Username</label>
+        </div>
+        <div class="input-field">
+          <input id="newEmail" type="email" required />
+          <label for="newEmail">Email</label>
+        </div>
+        <div class="input-field">
+          <select id="newRole" required>
+            <option value="" disabled selected>Choose role</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+          <label for="newRole">Role</label>
+        </div>
+        <div class="input-field">
+          <input id="newPasswordUser" type="password" required />
+          <label for="newPasswordUser">Password</label>
+        </div>
+        <div class="input-field">
+          <input id="confirmPasswordUser" type="password" required />
+          <label for="confirmPasswordUser">Confirm Password</label>
+        </div>
+        <div id="addUserMessage" class="red-text"></div>
+        <div class="modal-footer" style="padding-top: 0;">
+          <button type="submit" class="btn green">Add User</button>
+          <button type="button" class="modal-close btn grey" style="margin-left: 10px;">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- Materialize JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- ADMIN JS -->
+  <!-- Admin Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const token = localStorage.getItem('token');
+      const messageEl = document.getElementById('message');
+      const dashboardData = document.getElementById('dashboard-data');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const addUserBtn = document.getElementById('addUserBtn');
+      const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+      // Init Materialize Modal
+      const modals = document.querySelectorAll('.modal');
+      M.Modal.init(modals);
+
+      // Init select elements (Materialize requires this)
+      const selects = document.querySelectorAll('select');
+      M.FormSelect.init(selects);
+
+      // Init Materialize Tabs
+      const tabs = document.querySelectorAll('.tabs');
+      M.Tabs.init(tabs);
+
+      // Redirect if not logged in
+      if (!token) {
+        window.location.href = 'admin-login.html';
+        return;
+      }
+
+      // Fetch admin dashboard data
+      fetch('/admin/dashboard', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.msg || 'Error fetching dashboard');
+        dashboardData.innerHTML = `
+          <h6>Welcome, <strong>${data.user.username}</strong> (${data.user.role})</h6>
+          <p style="margin-left:10px;">Email: ${data.user.email}</p>
+        `;
+      })
+      .catch(err => {
+        if (messageEl) messageEl.textContent = err.message;
+        localStorage.removeItem('token');
+        setTimeout(() => window.location.href = 'admin-login.html', 2000);
+      });
+
+      // Logout button
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = 'admin-login.html';
+      });
+
+      // Add New User button - open Add User modal
+      addUserBtn.addEventListener('click', () => {
+        const addUserModalInstance = M.Modal.getInstance(document.getElementById('addUserModal'));
+        addUserModalInstance.open();
+      });
+
+      // Change Password button - open modal
+      changePasswordBtn.addEventListener('click', () => {
+        const instance = M.Modal.getInstance(document.getElementById('changePasswordModal'));
+        instance.open();
+      });
+
+      // Chart.js Analytics Setup
+      const ctx = document.getElementById('analyticsChart').getContext('2d');
+      const analyticsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Created Moods', 'Deleted Moods', 'New Users', 'Active Sessions'],
+          datasets: [{
+            label: 'Count',
+            data: [120, 30, 50, 75], // example static data - replace with real
+            backgroundColor: ['#42a5f5', '#ef5350', '#66bb6a', '#ffa726']
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Handle Add User form submission
+      const addUserForm = document.getElementById('addUserForm');
+      const addUserMessage = document.getElementById('addUserMessage');
+
+      addUserForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('newUsername').value.trim();
+        const email = document.getElementById('newEmail').value.trim();
+        const role = document.getElementById('newRole').value;
+        const password = document.getElementById('newPasswordUser').value;
+        const confirmPassword = document.getElementById('confirmPasswordUser').value;
+
+        addUserMessage.textContent = '';
+
+        if (password !== confirmPassword) {
+          addUserMessage.textContent = 'Passwords do not match.';
+          return;
+        }
+
+        // Basic validation could be enhanced here
+        // Set correct endpoint based on role
+        const endpoint = role === 'admin' ? '/admin/register' : '/api/auth/register';
+        
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ username, email, password })
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            addUserMessage.textContent = data.msg || 'Failed to add user.';
+            return;
+          }
+
+          addUserMessage.classList.remove('red-text');
+          addUserMessage.classList.add('green-text');
+          addUserMessage.textContent = 'User added successfully!';
+
+          // Optionally reset form or close modal after delay
+          setTimeout(() => {
+            addUserForm.reset();
+            addUserMessage.textContent = '';
+            const modalInstance = M.Modal.getInstance(document.getElementById('addUserModal'));
+            modalInstance.close();
+            // You can refresh user list here if implemented
+          }, 1500);
+        } catch (error) {
+          addUserMessage.textContent = 'An error occurred. Please try again.';
+        }
+      });
+    });
+  </script>
+
+  <!-- Your Admin-Specific JS -->
   <script src="/js/admin.js"></script>
 </body>
 </html>

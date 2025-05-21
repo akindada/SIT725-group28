@@ -5,11 +5,14 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
+    trim: true
   },
   username: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   password: {
     type: String,
@@ -17,14 +20,14 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],  // Define roles
+    enum: ['user', 'admin'],
     default: 'user'
   },
   suspended: {
     type: Boolean,
     default: false
   }
-});
+}, { timestamps: true });
 
 // Encrypt password before saving
 userSchema.pre('save', async function (next) {
