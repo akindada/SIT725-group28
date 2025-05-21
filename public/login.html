@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Daily Mood Tracker</title>
+  
+  <!-- Materialize CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="/CSS/styles.css">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body class="container">
+
+  <div id="loginPage" class="center-align section">
+    <h4>Login to Daily Mood Tracker</h4>
+
+    <form id="loginFormContent" class="col s12">
+      <div class="input-field">
+        <input type="email" id="loginEmail" class="validate" required>
+        <label for="loginEmail">Email</label>
+      </div>
+
+      <div class="input-field">
+        <input type="password" id="loginPassword" required>
+        <label for="loginPassword">Password</label>
+      </div>
+
+      <button type="submit" class="waves-effect waves-light btn green">Login</button>
+    </form>
+
+    <br>
+    <button id="backToHomeLogin" class="btn grey">Back to Home</button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // ✅ Redirect if token exists
+      const token = localStorage.getItem('token');
+      if (token) {
+        window.location.href = '/dashboard';
+        return;
+      }
+
+      // Handle login form submission
+      const loginForm = document.getElementById('loginFormContent');
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            localStorage.setItem('token', data.token);
+            M.toast({ html: 'Login successful!', classes: 'green' });
+            window.location.href = '/dashboard';
+          } else {
+            M.toast({ html: data.msg || 'Login failed.', classes: 'red' });
+          }
+        } catch (err) {
+          console.error(err);
+          M.toast({ html: 'Server error.', classes: 'red' });
+        }
+      });
+
+      // Back to homepage
+      document.getElementById('backToHomeLogin').addEventListener('click', () => {
+        window.location.href = '/index.html';
+      });
+    });
+  </script>
+</body>
+</html>
