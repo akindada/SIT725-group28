@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login</title>
+
+  <!-- Materialize CSS (optional) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+</head>
+<body class="grey lighten-4">
+
+  <div class="container">
+    <div class="row">
+      <div class="col s12 m6 offset-m3">
+        <div class="card-panel white z-depth-3">
+          <h5 class="center-align">Admin Login</h5>
+
+          <form id="adminLoginForm">
+            <div class="input-field">
+              <input type="email" id="email" required>
+              <label for="email">Email</label>
+            </div>
+            <div class="input-field">
+              <input type="password" id="password" required>
+              <label for="password">Password</label>
+            </div>
+            <button class="btn waves-effect waves-light full-width" type="submit">Login</button>
+          </form>
+
+          <p id="error" class="red-text center-align"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <script>
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorElem = document.getElementById('error');
+      errorElem.textContent = '';
+
+      try {
+        const res = await fetch('/api/auth/admin/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.msg || 'Login failed');
+        }
+
+        // ✅ Save the token
+        localStorage.setItem('token', data.token);
+
+        // ✅ Redirect to admin dashboard
+        window.location.href = '/admin/dashboard';
+
+      } catch (err) {
+        errorElem.textContent = err.message;
+        console.error('Login error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

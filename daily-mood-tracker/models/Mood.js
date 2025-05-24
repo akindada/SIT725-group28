@@ -8,4 +8,4 @@ const moodSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false }
 });
 
-module.exports = mongoose.model('Mood', moodSchema);
+module.exports = mongoose.models.Mood || mongoose.model('Mood', moodSchema);
