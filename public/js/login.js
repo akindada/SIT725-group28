@@ -1,11 +1,18 @@
+const loginFormContent = document.getElementById('loginFormContent'); // Make sure this matches your form's ID
+
 loginFormContent.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const email = document.getElementById('loginEmail').value;
+  const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
 
+  if (!email || !password) {
+    alert('Please enter both email and password.');
+    return;
+  }
+
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch('/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -14,21 +21,23 @@ loginFormContent.addEventListener('submit', async (e) => {
     const data = await res.json();
 
     if (res.ok && data.token) {
-      localStorage.setItem('token', data.token); // ✅ Store the token
+      localStorage.setItem('token', data.token); // Store token securely
+
       alert('Login successful!');
 
-      // Assuming you have a way to check if the user is an admin, you can conditionally redirect.
-      const userRole = data.role;  // Assuming the role is returned in the response
+      // Redirect based on user role returned from backend
+      const userRole = data.role || 'user';  // fallback to 'user' if role not present
+
       if (userRole === 'admin') {
-        window.location.href = '/admin/dashboard';  // Redirect to admin dashboard
+        window.location.href = '/admin/dashboard'; 
       } else {
-        window.location.href = '/';  // Redirect to homepage for regular users
+        window.location.href = '/'; 
       }
     } else {
-      alert(data.msg || 'Login failed');
+      alert(data.msg || 'Login failed: Invalid credentials.');
     }
   } catch (err) {
-    console.error(err);
-    alert('Server error');
+    console.error('Login error:', err);
+    alert('Server error. Please try again later.');
   }
 });
