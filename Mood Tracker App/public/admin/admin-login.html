@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login</title>
+  <!-- Materialize CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="/CSS/styles.css">
+</head>
+<body class="grey lighten-4">
+
+  <div class="container">
+    <h3 class="center-align">Admin Login</h3>
+
+    <div class="card">
+      <div class="card-content">
+        <form id="loginForm">
+          <div class="input-field">
+            <input id="email" type="email" required />
+            <label for="email">Email</label>
+          </div>
+
+          <div class="input-field">
+            <input id="password" type="password" required />
+            <label for="password">Password</label>
+          </div>
+
+          <button class="btn blue waves-effect waves-light" type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="message" class="center-align red-text"></div>
+  </div>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+  <!-- Vanilla JS -->
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const messageEl = document.getElementById('message');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      try {
+        const res = await fetch('/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.msg || 'Login failed');
+        }
+
+        localStorage.setItem('token', data.token);
+
+        // Redirect to admin-dashboard.html
+        window.location.href = 'admin-dashboard.html';
+      } catch (err) {
+        messageEl.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
